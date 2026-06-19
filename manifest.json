@@ -1,20 +1,11 @@
 [
   {
     "guid": "9a44e327-1087-4b62-9c96-a54b203f20be",
-    "name": "Media Notes Pro 2.0",
+    "name": "Media Notes Pro",
     "description": "Anotações com timestamp, sincronizadas por usuário e mídia no Jellyfin.",
     "overview": "Crie, sincronize e exporte notas vinculadas à reprodução.",
     "owner": "Media Notes Pro contributors",
     "category": "General",
-    "versions": [
-      {
-        "version": "2.0.0.0",
-        "changelog": "Consulte as notas do GitHub Release v2.0.0.0.",
-        "targetAbi": "10.11.11.0",
-        "sourceUrl": "https://github.com/IgsonJr1/MediaNotesPro2.0/releases/download/v2.0.0.0/media-notes-pro_2.0.0.0.zip",
-        "checksum": "5d409869c0caef2450292e7ca86eda34",
-        "timestamp": "2026-06-19T17:01:51Z"
-      }
-    ]
+    "versions": []
   }
 ]
