@@ -8,44 +8,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
-
+          dotnet-version: 9.0.x
       - name: Locate project
         id: project
         shell: bash
         run: |
           PROJECT="$(find . -type f -name 'MediaNotesPro.csproj' -print -quit)"
-
           if [ -z "$PROJECT" ]; then
-            echo "MediaNotesPro.csproj não encontrado:"
+            echo "MediaNotesPro.csproj não encontrado"
             find . -maxdepth 5 -type f
             exit 1
           fi
-
           echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "Projeto encontrado: $PROJECT"
-
-      - name: Publish
+      - name: Publish Jellyfin 10.11.11 plugin
         run: >
           dotnet publish
           "${{ steps.project.outputs.path }}"
           --configuration Release
           --output artifacts/MediaNotesPro
-
-      - name: Copy metadata
+          -p:JellyfinVersion=10.11.11
+      - name: Copy plugin metadata
         shell: bash
         run: |
           META="$(find . -type f -name 'meta.json' -print -quit)"
           test -n "$META"
           cp "$META" artifacts/MediaNotesPro/
-
       - uses: actions/upload-artifact@v4
         with:
-          name: MediaNotesPro2.0
+          name: MediaNotesPro-10.11.11
           path: artifacts/MediaNotesPro
