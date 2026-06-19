@@ -44,3 +44,20 @@ Abra uma WebView autenticada:
 ```
 
 Ou use a API com `X-Emby-Token`. Para a share sheet, baixe `/MediaNotes/{itemId}/Export`.
+
+## Releases e repositório Jellyfin
+
+O workflow `.github/workflows/publish.yml` publica uma release ao receber uma tag que corresponda à versão do `meta.json`:
+
+```bash
+git tag v2.0.0.0
+git push origin v2.0.0.0
+```
+
+Depois, cadastre no Jellyfin:
+
+```text
+https://raw.githubusercontent.com/SEU-USUARIO/MediaNotesPro2.0/main/manifest.json
+```
+
+Substitua o usuário/repositório. Em **Settings → Actions → General → Workflow permissions**, habilite **Read and write permissions**, pois o workflow atualiza o `manifest.json`.
