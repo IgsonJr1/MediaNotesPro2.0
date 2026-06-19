@@ -1,16 +1,3 @@
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Plugins;
-using MediaNotesPro.Storage;
-using Microsoft.Extensions.DependencyInjection;
-
+using MediaBrowser.Model.Plugins;
 namespace MediaNotesPro;
-
-public sealed class PluginServiceRegistrator : IPluginServiceRegistrator
-{
-    public void RegisterServices(
-        IServiceCollection services,
-        IServerApplicationHost applicationHost)
-    {
-        services.AddSingleton<IMediaNoteStore, JsonMediaNoteStore>();
-    }
-}
+public sealed class PluginConfiguration : BasePluginConfiguration { public bool AutoSaveEnabled { get; set; } = true; public int AutoSaveDelayMilliseconds { get; set; } = 700; }
