@@ -1,1 +1,6 @@
-.mnp-btn{background:transparent;border:0;color:inherit;padding:.7em}.mnp-bg{background:#000a;display:flex;inset:0;position:fixed;z-index:99999;align-items:center;justify-content:center}.mnp-box{background:#202020;color:#fff;border-radius:8px;display:flex;flex-direction:column;padding:1rem;width:min(90vw,800px);height:min(80vh,650px)}.mnp-head,.mnp-actions{display:flex;gap:.7rem;align-items:center}.mnp-status{margin-left:auto;color:#aaa}.mnp-edit{background:#111;color:#fff;flex:1;margin:1rem 0;padding:.8rem;font:1rem/1.5 monospace}.mnp-actions button,.mnp-actions a{background:#00a4dc;color:#fff;border:0;padding:.7rem;text-decoration:none}
+.mnp-btn{background:transparent;border:0;color:inherit;cursor:pointer}
+.mnp-bg{align-items:center;background:#000a;display:flex;inset:0;justify-content:center;padding:1rem;position:fixed;z-index:99999}
+.mnp-box{background:#202020;border-radius:8px;color:#fff;display:flex;flex-direction:column;height:min(80vh,650px);padding:1rem;width:min(90vw,800px)}
+.mnp-head,.mnp-actions{align-items:center;display:flex;gap:.7rem}.mnp-head h2{margin:0}.mnp-status{color:#aaa;margin-left:auto}
+.mnp-close{background:transparent;border:0;color:#fff;cursor:pointer;font-size:2rem}.mnp-edit{background:#111;border:1px solid #555;color:#fff;flex:1;font:1rem/1.5 monospace;margin:1rem 0;padding:.8rem;resize:vertical}
+.mnp-actions button,.mnp-actions a{background:#00a4dc;border:0;border-radius:4px;color:#fff;cursor:pointer;padding:.7rem 1rem;text-decoration:none}
