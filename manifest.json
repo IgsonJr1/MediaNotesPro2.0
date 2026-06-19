@@ -6,6 +6,15 @@
     "overview": "Crie, sincronize e exporte notas vinculadas à reprodução.",
     "owner": "Media Notes Pro contributors",
     "category": "General",
-    "versions": []
+    "versions": [
+      {
+        "version": "2.0.2.0",
+        "changelog": "Consulte as notas do GitHub Release v2.0.2.0.",
+        "targetAbi": "10.11.11.0",
+        "sourceUrl": "https://github.com/IgsonJr1/MediaNotesPro2.0/releases/download/v2.0.2.0/media-notes-pro_2.0.2.0.zip",
+        "checksum": "9317131ac0a2cb46710668e09358db58",
+        "timestamp": "2026-06-19T17:41:43Z"
+      }
+    ]
   }
 ]
