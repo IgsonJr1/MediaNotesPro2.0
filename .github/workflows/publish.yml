@@ -1,17 +1,23 @@
 name: publish
+
 on:
+  workflow_dispatch:
   push:
-    tags: ["v*.*.*.*"]
+    tags:
+      - "v*.*.*.*"
+
 permissions:
   contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
@@ -22,29 +28,50 @@ jobs:
         run: |
           PROJECT="$(find . -type f -name 'MediaNotesPro.csproj' -print -quit)"
           META="$(find . -type f -name 'meta.json' -print -quit)"
-          test -n "$PROJECT" && test -n "$META"
+          if [ -z "$PROJECT" ] || [ -z "$META" ]; then
+            echo "Projeto ou meta.json não encontrado"
+            find . -maxdepth 5 -type f
+            exit 1
+          fi
           echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "meta=$META" >> "$GITHUB_OUTPUT"
 
-      - name: Read metadata
+      - name: Read metadata and determine tag
         id: release
         shell: bash
         run: |
           VERSION="$(jq -r '.version' "${{ steps.files.outputs.meta }}")"
           TARGET_ABI="$(jq -r '.targetAbi' "${{ steps.files.outputs.meta }}")"
+          EXPECTED_TAG="v$VERSION"
+
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]; then
+            echo "A tag deve ser $EXPECTED_TAG, mas foi $GITHUB_REF_NAME"
+            exit 1
+          fi
+
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "target_abi=$TARGET_ABI" >> "$GITHUB_OUTPUT"
+          echo "tag=$EXPECTED_TAG" >> "$GITHUB_OUTPUT"
           echo "zip_name=media-notes-pro_${VERSION}.zip" >> "$GITHUB_OUTPUT"
-          test "$GITHUB_REF_NAME" = "v$VERSION" || { echo "A tag deve ser v$VERSION"; exit 1; }
+
+      - name: Create tag for manual run
+        if: github.ref_type != 'tag'
+        shell: bash
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Build
         run: >
           dotnet publish "${{ steps.files.outputs.project }}"
-          -c Release
-          -o artifacts/publish
+          --configuration Release
+          --output artifacts/publish
           -p:JellyfinVersion=10.11.11
 
-      - name: Package
+      - name: Package and checksum
         id: package
         shell: bash
         run: |
@@ -52,41 +79,55 @@ jobs:
           cp -a artifacts/publish/. artifacts/package/
           cp "${{ steps.files.outputs.meta }}" artifacts/package/meta.json
           find artifacts/package -type f \( -name 'Jellyfin.*.dll' -o -name 'MediaBrowser.*.dll' \) -delete
-          (cd artifacts/package && zip -r "../${{ steps.release.outputs.zip_name }}" .)
-          ZIP="artifacts/${{ steps.release.outputs.zip_name }}"
-          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
-          echo "checksum=$(md5sum "$ZIP" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
-          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
-          echo "url=https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/${{ steps.release.outputs.zip_name }}" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release
+          (cd artifacts/package && zip -r "../${{ steps.release.outputs.zip_name }}" .)
+
+          ZIP="artifacts/${{ steps.release.outputs.zip_name }}"
+          CHECKSUM="$(md5sum "$ZIP" | awk '{print $1}')"
+          TIMESTAMP="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          URL="https://github.com/$GITHUB_REPOSITORY/releases/download/${{ steps.release.outputs.tag }}/${{ steps.release.outputs.zip_name }}"
+
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "timestamp=$TIMESTAMP" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "$GITHUB_REF_NAME"
-          "${{ steps.package.outputs.zip }}"
-          --title "Media Notes Pro ${{ steps.release.outputs.version }}"
-          --generate-notes
+        shell: bash
+        run: |
+          TAG="${{ steps.release.outputs.tag }}"
+          ZIP="${{ steps.package.outputs.zip }}"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$ZIP"               --title "Media Notes Pro ${{ steps.release.outputs.version }}"               --generate-notes
+          fi
 
       - name: Create manifest entry
         shell: bash
         run: |
-          jq -n             --arg version "${{ steps.release.outputs.version }}"             --arg changelog "Consulte as notas do GitHub Release $GITHUB_REF_NAME."             --arg targetAbi "${{ steps.release.outputs.target_abi }}"             --arg sourceUrl "${{ steps.package.outputs.url }}"             --arg checksum "${{ steps.package.outputs.checksum }}"             --arg timestamp "${{ steps.package.outputs.timestamp }}"             '{version:$version,changelog:$changelog,targetAbi:$targetAbi,sourceUrl:$sourceUrl,checksum:$checksum,timestamp:$timestamp}'             > /tmp/release-entry.json
+          jq -n             --arg version "${{ steps.release.outputs.version }}"             --arg changelog "Consulte as notas do GitHub Release ${{ steps.release.outputs.tag }}."             --arg targetAbi "${{ steps.release.outputs.target_abi }}"             --arg sourceUrl "${{ steps.package.outputs.url }}"             --arg checksum "${{ steps.package.outputs.checksum }}"             --arg timestamp "${{ steps.package.outputs.timestamp }}"             '{version:$version,changelog:$changelog,targetAbi:$targetAbi,sourceUrl:$sourceUrl,checksum:$checksum,timestamp:$timestamp}'             > /tmp/release-entry.json
 
-      - name: Update manifest.json on main
+      - name: Update manifest on default branch
         shell: bash
         run: |
-          git fetch origin main
-          git checkout main
-          git pull --ff-only origin main
+          BRANCH="${{ github.event.repository.default_branch }}"
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH"
+          git pull --ff-only origin "$BRANCH"
+
           ENTRY="$(cat /tmp/release-entry.json)"
           jq --argjson entry "$ENTRY"             '.[0].versions = ([$entry] + ((.[0].versions // []) | map(select(.version != $entry.version))))'             manifest.json > manifest.tmp.json
           mv manifest.tmp.json manifest.json
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add manifest.json
           git commit -m "chore: publish ${{ steps.release.outputs.version }}" || exit 0
-          git push origin main
+          git push origin "$BRANCH"
 
       - uses: actions/upload-artifact@v4
         with:
