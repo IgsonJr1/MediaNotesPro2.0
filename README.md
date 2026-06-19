@@ -16,10 +16,10 @@ Plugins de servidor não injetam JavaScript automaticamente no Jellyfin Web nem 
 
 ## Build e deploy
 
-Requer .NET 8. Compile usando a mesma versão do servidor:
+Requer .NET 9. Compile usando a mesma versão do servidor:
 
 ```powershell
-.\build.ps1 -JellyfinVersion 10.10.7
+.\build.ps1 -JellyfinVersion 10.11.11
 ```
 
 As referências `Jellyfin.Common`, `Jellyfin.Controller` e `Jellyfin.Model` fornecem também os namespaces/assemblies MediaBrowser. Não copie essas DLLs. Ajuste `targetAbi` no `meta.json` para seu servidor.
