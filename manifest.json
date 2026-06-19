@@ -1,0 +1,11 @@
+[
+  {
+    "guid": "9a44e327-1087-4b62-9c96-a54b203f20be",
+    "name": "Media Notes Pro 2.0",
+    "description": "Anotações com timestamp, sincronizadas por usuário e mídia no Jellyfin.",
+    "overview": "Crie, sincronize e exporte notas vinculadas à reprodução.",
+    "owner": "Media Notes Pro contributors",
+    "category": "General",
+    "versions": []
+  }
+]
