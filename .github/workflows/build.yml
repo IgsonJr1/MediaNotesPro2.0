@@ -1,16 +1,51 @@
 name: build
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - run: dotnet publish src/MediaNotesPro/MediaNotesPro.csproj -c Release -o artifacts/MediaNotesPro
-      - run: cp meta.json artifacts/MediaNotesPro/
+
+      - name: Locate project
+        id: project
+        shell: bash
+        run: |
+          PROJECT="$(find . -type f -name 'MediaNotesPro.csproj' -print -quit)"
+
+          if [ -z "$PROJECT" ]; then
+            echo "MediaNotesPro.csproj não encontrado:"
+            find . -maxdepth 5 -type f
+            exit 1
+          fi
+
+          echo "path=$PROJECT" >> "$GITHUB_OUTPUT"
+          echo "Projeto encontrado: $PROJECT"
+
+      - name: Publish
+        run: >
+          dotnet publish
+          "${{ steps.project.outputs.path }}"
+          --configuration Release
+          --output artifacts/MediaNotesPro
+
+      - name: Copy metadata
+        shell: bash
+        run: |
+          META="$(find . -type f -name 'meta.json' -print -quit)"
+          test -n "$META"
+          cp "$META" artifacts/MediaNotesPro/
+
       - uses: actions/upload-artifact@v4
         with:
-          name: MediaNotesPro
+          name: MediaNotesPro2.0
           path: artifacts/MediaNotesPro
