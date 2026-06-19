@@ -29,8 +29,8 @@ Copie `MediaNotesPro.dll` e `meta.json` para `/var/lib/jellyfin/plugins/MediaNot
 ## Web
 
 ```html
-<link rel="stylesheet" href="/web/MediaNotesPro.css">
-<script src="/web/MediaNotesPro.js"></script>
+<link rel="stylesheet" href="/web/configurationpage?name=MediaNotesPro.css">
+<script src="/web/configurationpage?name=MediaNotesPro.js"></script>
 ```
 
 Para integração estável, chame `MediaNotesPro.configure({apiClient, getItemId, getPositionSeconds})`.
@@ -40,7 +40,7 @@ Para integração estável, chame `MediaNotesPro.configure({apiClient, getItemId
 Abra uma WebView autenticada:
 
 ```
-{serverUrl}/web/MediaNotesProMobile.html?itemId={ItemId}&positionTicks={PlaybackPositionTicks}
+{serverUrl}/web/configurationpage?name=MediaNotesProMobile&itemId={ItemId}&positionTicks={PlaybackPositionTicks}
 ```
 
 Ou use a API com `X-Emby-Token`. Para a share sheet, baixe `/MediaNotes/{itemId}/Export`.
